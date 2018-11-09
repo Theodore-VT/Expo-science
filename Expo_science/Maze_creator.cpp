@@ -58,7 +58,11 @@ void Maze_generator::Init(std::vector<Node>& Nodes)
 
 	m_nodes = &Nodes;//= _2d_array<Node>(m_width, m_height, Nodes);
 
-	Current = 16;
+	do
+	{
+		Current = rand() % Nodes.size();
+	} while (this->index(Current) == -1);
+
 	visited_nodes[Current] = true;	
 
 	for (int i = 0; i < m_nodes->size(); ++i)

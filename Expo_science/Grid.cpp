@@ -18,13 +18,6 @@ Grid::Grid(int Width_nodes, int Height_nodes, int Width_px, int Height_px, std::
 	Highest_priority(200)	// Arbitrary big number
 {
 	this->Reset(Width_nodes, Height_nodes, Width_px, Height_px);
-
-	Nodes_SnapShot = Nodes;
-
-	for (int i = 0; i < Nodes.size(); ++i)
-	{
-		All_indexes.push_back(i);
-	}
 }
 
 Node & Grid::operator()(float x, float y)
@@ -142,6 +135,8 @@ void Grid::Reset(int Width_nodes, int Height_nodes, int Width_px, int Height_px)
 		m_height_px = m_height_px_per_node * Height_nodes;
 
 		Nodes.clear();
+		All_indexes.clear();
+		Nodes_SnapShot.clear();
 
 		for (int i = 0; i < Height_nodes; i++)
 			for (int j = 0; j < Width_nodes; j++)
@@ -153,6 +148,10 @@ void Grid::Reset(int Width_nodes, int Height_nodes, int Width_px, int Height_px)
 				else
 					Nodes.back().SetIsWall(NOT_WALL);
 			}
+
+		Nodes_SnapShot = Nodes;
+		for (int i = 0; i < Nodes.size(); ++i)
+			All_indexes.push_back(i);
 	}
 }
 
@@ -206,7 +205,10 @@ void Grid::Show(HWND window_handle, bool Force_Redraw)
 	std::vector<int> indexes_to_update;
 	
 	if (Force_Redraw)
+	{
+		InvalidateRect(window_handle, NULL, TRUE);
 		indexes_to_update = All_indexes;
+	}
 	else
 		indexes_to_update = this->Get_ChangedNodes_ind();
 
@@ -254,6 +256,26 @@ int Grid::GetInd_from_2dPos(int x, int y)
 int Grid::Num_nodes()
 {
 	return m_width_nodes * m_height_nodes;
+}
+
+int Grid::Width_px()
+{
+	return m_width_px;
+}
+
+int Grid::Height_px()
+{
+	return m_height_px;
+}
+
+int Grid::Width_nd()
+{
+	return m_width_nodes;
+}
+
+int Grid::Height_nd()
+{
+	return m_height_nodes;
 }
 
 std::vector<int> Grid::Get_ChangedNodes_ind()

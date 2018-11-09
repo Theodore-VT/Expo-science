@@ -58,10 +58,16 @@ void print(const char * msg)
 	_RPT0(_CRT_WARN, msg);
 }
 
+void print(String msg)
+{
+	_RPT0(_CRT_WARN, msg.c_str());
+}
+
 void print(std::string msg)
 {
 	_RPT0(_CRT_WARN, msg.c_str());
 }
+
 
 #endif
 //End of File

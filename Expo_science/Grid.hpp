@@ -43,6 +43,14 @@ public:
 
 	int Num_nodes();
 
+	// Dimensions in pixels
+	int Width_px();
+	int Height_px();
+
+	// Dimensions in nodes
+	int Width_nd();
+	int Height_nd();
+
 private:
 
 	std::vector<int> Get_ChangedNodes_ind();
