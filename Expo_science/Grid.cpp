@@ -202,24 +202,37 @@ void Grid::Update()
 
 void Grid::Show(HWND window_handle, bool Force_Redraw)
 {
+	static int it = 0;
+
 	std::vector<int> indexes_to_update;
 	
-	if (Force_Redraw)
+	if (Force_Redraw)// || it >= 3000)
 	{
 		InvalidateRect(window_handle, NULL, TRUE);
+		it = 0;
 		indexes_to_update = All_indexes;
 	}
 	else
+	{
+		
 		indexes_to_update = this->Get_ChangedNodes_ind();
 
+		if (!indexes_to_update.empty())
+			it++;
+			//print(std::to_string(it++) + "\n");
+	}
+	
+	InvalidateRect(window_handle, NULL, FALSE);
+	PAINTSTRUCT ps;
+	HDC hdc = BeginPaint(window_handle, &ps);
+	HBRUSH invalidate_hbr = CreateSolidBrush(RGB(0, 0, 0));
 	for (int i = 0; i < indexes_to_update.size(); ++i)
 	{
+		
+		it++;
 		int ind = indexes_to_update[i];
 		Node tmp_node = this->operator()(ind);
 
-		PAINTSTRUCT ps;
-
-		InvalidateRect(window_handle, NULL, FALSE);
 
 		float Shift_Right = (0.15 * tmp_node.GetWall(LEFT_WALL_) * m_width_px_per_node);
 		float Shift_Bottom = -(0.15 * tmp_node.GetWall(BOTTOM_WALL_) * m_height_px_per_node);
@@ -227,18 +240,21 @@ void Grid::Show(HWND window_handle, bool Force_Redraw)
 		RECT lpcr = { tmp_node.GetVertex(0, X_) + Shift_Right, tmp_node.GetVertex(0, Y_), tmp_node.GetVertex(2, X_), tmp_node.GetVertex(2, Y_) + Shift_Bottom };
 		RECT invalidate_lpcr = { tmp_node.GetVertex(0, X_), tmp_node.GetVertex(0, Y_), tmp_node.GetVertex(2, X_), tmp_node.GetVertex(2, Y_) };
 		
-		HDC hdc = BeginPaint(window_handle, &ps);
 		float Color_modifier = 1.0f - tmp_node.IsWall();
 
-		HBRUSH invalidate_hbr = CreateSolidBrush(RGB(0, 0, 0));
+		int R = 255 * Color_modifier;
+		int G = 120 * Color_modifier;
+		int B = 45 * Color_modifier;
+
+		
 		FillRect(hdc, &invalidate_lpcr, invalidate_hbr);
 
 
-		HBRUSH hbr = CreateSolidBrush(RGB(255 * Color_modifier, 120 * Color_modifier, 45 * Color_modifier));
+		HBRUSH hbr = CreateSolidBrush(RGB(R, G, B));
 		FillRect(hdc, &lpcr, hbr);
-		EndPaint(window_handle, &ps);		
 	}
-	
+	EndPaint(window_handle, &ps);
+	//Sleep(20);
 }
 
 int Grid::GetInd_from_2dPos(int x, int y)
