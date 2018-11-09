@@ -134,6 +134,9 @@ void Grid::Reset(int Width_nodes, int Height_nodes, int Width_px, int Height_px)
 		m_width_px = m_width_px_per_node * Width_nodes;
 		m_height_px = m_height_px_per_node * Height_nodes;
 
+		m_shift_Right_Const = m_width_px_per_node * 0.15;
+		m_shift_Bottom_Const = m_height_px_per_node * 0.15;
+
 		Nodes.clear();
 		All_indexes.clear();
 		Nodes_SnapShot.clear();
@@ -226,6 +229,9 @@ void Grid::Show(HWND window_handle, bool Force_Redraw)
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(window_handle, &ps);
 	HBRUSH invalidate_hbr = CreateSolidBrush(RGB(0, 0, 0));
+
+
+
 	for (int i = 0; i < indexes_to_update.size(); ++i)
 	{
 		
@@ -233,9 +239,8 @@ void Grid::Show(HWND window_handle, bool Force_Redraw)
 		int ind = indexes_to_update[i];
 		Node tmp_node = this->operator()(ind);
 
-
-		float Shift_Right = (0.15 * tmp_node.GetWall(LEFT_WALL_) * m_width_px_per_node);
-		float Shift_Bottom = -(0.15 * tmp_node.GetWall(BOTTOM_WALL_) * m_height_px_per_node);
+		float Shift_Right = (tmp_node.GetWall(LEFT_WALL_) * m_shift_Right_Const);
+		float Shift_Bottom = -(tmp_node.GetWall(BOTTOM_WALL_) * m_shift_Bottom_Const);
 
 		RECT lpcr = { tmp_node.GetVertex(0, X_) + Shift_Right, tmp_node.GetVertex(0, Y_), tmp_node.GetVertex(2, X_), tmp_node.GetVertex(2, Y_) + Shift_Bottom };
 		RECT invalidate_lpcr = { tmp_node.GetVertex(0, X_), tmp_node.GetVertex(0, Y_), tmp_node.GetVertex(2, X_), tmp_node.GetVertex(2, Y_) };
@@ -248,7 +253,6 @@ void Grid::Show(HWND window_handle, bool Force_Redraw)
 
 		
 		FillRect(hdc, &invalidate_lpcr, invalidate_hbr);
-
 
 		HBRUSH hbr = CreateSolidBrush(RGB(R, G, B));
 		FillRect(hdc, &lpcr, hbr);

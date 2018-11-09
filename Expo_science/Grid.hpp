@@ -61,6 +61,9 @@ private:
 	Node m_NULL_node;
 	int Highest_priority;
 	
+	float m_shift_Right_Const;
+	float m_shift_Bottom_Const;
+
 	std::vector<int> All_indexes;
 	std::vector<Algorithm*> Algorithms_to_update;
 	std::vector<Node> Nodes, Nodes_SnapShot;
