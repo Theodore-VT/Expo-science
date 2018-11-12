@@ -12,6 +12,8 @@
 #define A_STAR			1
 #define RANDOM			2
 
+#define LAST_PATH	   -1
+
 class Grid
 {
 friend class Grid_manager;
@@ -33,8 +35,9 @@ public:
 	void Load(const char * Filename);
 	void Reset(int Width_nodes = -1, int Height_nodes = -1, int Width_px = -1, int Height_px = -1);
 
-
 	void Add_algorithm_to_queue(Algorithm * new_Algorithm);
+	void Add_algortihm_notifier(int ID, int Number_of_times);
+
 	void Update();
 	void Show(HWND window_handle, bool Force_Redraw = false);
 
@@ -51,9 +54,16 @@ public:
 	int Width_nd();
 	int Height_nd();
 
+	Path *GetPath(int ind);
+	void AddPath(unsigned int Start_node);
+
 private:
 
+	void Notify_algorithm_on_click(int Node_ind);
 	std::vector<int> Get_ChangedNodes_ind();
+	void Node_Color(int node_ind, int &R, int &G, int &B);
+
+	void Draw_Path(int ind, HWND window_handle);
 
 	int Last_node_shifted;
 	int m_width_nodes, m_width_px, m_height_nodes, m_height_px;
@@ -64,9 +74,12 @@ private:
 	float m_shift_Right_Const;
 	float m_shift_Bottom_Const;
 
+	int m_algorithm_to_notify, m_notify_steps;
 	std::vector<int> All_indexes;
 	std::vector<Algorithm*> Algorithms_to_update;
 	std::vector<Node> Nodes, Nodes_SnapShot;
+	std::vector<Path> Resolve_paths;
+	Path Null_Path;
 };
 
 #endif // !GRID_HPP

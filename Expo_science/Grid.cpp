@@ -4,18 +4,31 @@
 
 #include <string>
 #include <fstream>
+#include <objidl.h>
+#include <gdiplus.h>
+using namespace Gdiplus;
+#pragma comment (lib,"Gdiplus.lib")
 
-#define BUTTON_ID_OFFSET 200
+#define R_REGULAR_ 255
+#define G_REGULAR_ 120
+#define B_REGULAR_ 45
 
-double map(double x, double in_min, double in_max, double out_min, double out_max)
-{
-	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
+#define R_START_ 25
+#define G_START_ 255
+#define B_START_ 120
+
+#define R_GOAL_ 100
+#define G_GOAL_ 50
+#define B_GOAL_ 140
 
 Grid::Grid(int Width_nodes, int Height_nodes, int Width_px, int Height_px, std::string path_to_maze) :
 	m_NULL_node(0, 0, 0, 0),
 	Last_node_shifted(-1),
-	Highest_priority(200)	// Arbitrary big number
+	Highest_priority(200),	// Arbitrary big number
+	Null_Path(nullptr),
+
+	m_algorithm_to_notify(0),
+	m_notify_steps(0)
 {
 	this->Reset(Width_nodes, Height_nodes, Width_px, Height_px);
 }
@@ -39,8 +52,13 @@ void Grid::Notify_wall_shift(int ind, bool overide_previous)
 {
 	if ((ind != Last_node_shifted || overide_previous) && this->IsNode_shiftable(ind))
 	{
-		this->operator()(ind).SetIsWall((1 - this->operator()(ind).IsWall()));
+		if (this->operator()(ind).IsWall() != 0.0f && this->operator()(ind).IsWall() != 1.0f)
+			this->operator()(ind).SetIsWall(1.0f);
+		else
+			this->operator()(ind).SetIsWall((1 - this->operator()(ind).IsWall()));
 		Last_node_shifted = ind;
+
+		this->Notify_algorithm_on_click(ind);
 	}
 }
 
@@ -51,7 +69,7 @@ float Grid::GetColor(int ind)
 
 bool Grid::IsNode_shiftable(int ind)
 {
-	return !((this->operator()(ind).IsWall(true)) == PERMANENT_WALL);
+	return !((this->operator()(ind).IsWall(true)) == PERMANENT_WALL || this->operator()(ind).GetFlag() != "");
 }
 
 void Grid::Save(const char * Filename)
@@ -88,13 +106,13 @@ void Grid::Load(const char * Filename)
 
 		for (int i = 0; i < (m_width_nodes * m_height_nodes); ++i)
 		{
-			float IsWall     = 0.0f;
-			bool  TopWall    = false;
+			float IsWall = 0.0f;
+			bool  TopWall = false;
 			bool  BottomWall = false;
-			bool  RightWall  = false;
-			bool  LeftWall    = false;
-			
-			
+			bool  RightWall = false;
+			bool  LeftWall = false;
+
+
 			Load_stream >> IsWall;
 			Load_stream >> TopWall;
 			Load_stream >> BottomWall;
@@ -115,11 +133,15 @@ void Grid::Load(const char * Filename)
 
 void Grid::Reset(int Width_nodes, int Height_nodes, int Width_px, int Height_px)
 {
+	Resolve_paths.clear();
 	if ((Width_nodes + Height_nodes + Width_px + Height_px) == -4)
 	{
 		for (int i = 0; i < Nodes.size(); ++i)
-			if(Nodes[i].IsWall(true) != PERMANENT_WALL)
+			if (Nodes[i].IsWall(true) != PERMANENT_WALL)
+			{
+				Nodes[i].SetFlag("", 0.0f);
 				Nodes[i].SetIsWall(0.0f);
+			}
 	}
 	else
 	{
@@ -179,13 +201,41 @@ void Grid::Add_algorithm_to_queue(Algorithm * new_Algorithm)
 	print("Number of algorithms : " + std::to_string(Algorithms_to_update.size()) + "\n");
 }
 
+void Grid::Add_algortihm_notifier(int ID, int Number_of_times)
+{
+	m_algorithm_to_notify = ID;
+	m_notify_steps = Number_of_times;
+}
+
+void Grid::Notify_algorithm_on_click(int Node_ind)
+{
+	if (m_algorithm_to_notify && m_notify_steps)
+	{
+		bool Did_something = false;
+		for (int i = 0; i < Algorithms_to_update.size(); ++i)
+		{
+			if (Algorithms_to_update[i]->GetID() == m_algorithm_to_notify)
+			{
+				Did_something = true;
+				Algorithms_to_update[i]->Notify_node(Node_ind);
+			}
+		}
+		if(Did_something)
+			m_notify_steps--;
+	}
+	else
+	{
+		m_notify_steps = 0;
+		m_algorithm_to_notify = 0;
+	}
+}
+
 void Grid::Update()
 {
 	int Highest_priority_found = 200; // Arbitrary big number
 	
 	for (int i = 0; i < Algorithms_to_update.size(); ++i)
 	{
-		//print("Algorithm update!\n");
 		int Algorithm_priority = Algorithms_to_update[i]->GetPriority();
 
 		if (Algorithm_priority == Highest_priority)
@@ -205,37 +255,23 @@ void Grid::Update()
 
 void Grid::Show(HWND window_handle, bool Force_Redraw)
 {
-	static int it = 0;
-
 	std::vector<int> indexes_to_update;
 	
-	if (Force_Redraw)// || it >= 3000)
+	if (Force_Redraw)
 	{
 		InvalidateRect(window_handle, NULL, TRUE);
-		it = 0;
 		indexes_to_update = All_indexes;
 	}
 	else
-	{
-		
 		indexes_to_update = this->Get_ChangedNodes_ind();
-
-		if (!indexes_to_update.empty())
-			it++;
-			//print(std::to_string(it++) + "\n");
-	}
 	
 	InvalidateRect(window_handle, NULL, FALSE);
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(window_handle, &ps);
 	HBRUSH invalidate_hbr = CreateSolidBrush(RGB(0, 0, 0));
-
-
-
+	
 	for (int i = 0; i < indexes_to_update.size(); ++i)
 	{
-		
-		it++;
 		int ind = indexes_to_update[i];
 		Node tmp_node = this->operator()(ind);
 
@@ -245,20 +281,19 @@ void Grid::Show(HWND window_handle, bool Force_Redraw)
 		RECT lpcr = { tmp_node.GetVertex(0, X_) + Shift_Right, tmp_node.GetVertex(0, Y_), tmp_node.GetVertex(2, X_), tmp_node.GetVertex(2, Y_) + Shift_Bottom };
 		RECT invalidate_lpcr = { tmp_node.GetVertex(0, X_), tmp_node.GetVertex(0, Y_), tmp_node.GetVertex(2, X_), tmp_node.GetVertex(2, Y_) };
 		
-		float Color_modifier = 1.0f - tmp_node.IsWall();
-
-		int R = 255 * Color_modifier;
-		int G = 120 * Color_modifier;
-		int B = 45 * Color_modifier;
-
-		
 		FillRect(hdc, &invalidate_lpcr, invalidate_hbr);
+
+		int R, G, B;
+		this->Node_Color(ind, R, G, B);
 
 		HBRUSH hbr = CreateSolidBrush(RGB(R, G, B));
 		FillRect(hdc, &lpcr, hbr);
 	}
+	
 	EndPaint(window_handle, &ps);
-	//Sleep(20);
+
+	for(int i = 0; i < Resolve_paths.size(); ++i)
+		this->Draw_Path(i, window_handle);
 }
 
 int Grid::GetInd_from_2dPos(int x, int y)
@@ -298,20 +333,109 @@ int Grid::Height_nd()
 	return m_height_nodes;
 }
 
+Path * Grid::GetPath(int ind)
+{
+	if (ind >= (int)Resolve_paths.size())
+		return &Null_Path;
+	else if (ind == LAST_PATH)
+	{
+		print("Return last path !\n");
+		return &Resolve_paths[Resolve_paths.size() - 1];
+	}
+	else if (ind >= 0)
+		return &Resolve_paths[ind];
+}
+
+void Grid::AddPath(unsigned int Start_node)
+{
+	if (Start_node > Nodes.size())
+		return;
+
+	Resolve_paths.push_back(Path(&Nodes[Start_node]));
+
+	print("Number of paths : " + std::to_string(Resolve_paths.size()) + "\n");
+}
+
 std::vector<int> Grid::Get_ChangedNodes_ind()
 {
 	std::vector<int> indexes;
 
 	for (int i = 0; i < Nodes.size(); ++i)
 	{
-		if (Nodes[i].IsWall() != Nodes_SnapShot[i].IsWall() || 
-			Nodes[i].GetWall(LEFT_WALL_) != Nodes_SnapShot[i].GetWall(LEFT_WALL_) || 
+		if (Nodes[i].IsWall() != Nodes_SnapShot[i].IsWall() ||
+			Nodes[i].GetWall(LEFT_WALL_) != Nodes_SnapShot[i].GetWall(LEFT_WALL_) ||
 			Nodes[i].GetWall(BOTTOM_WALL_) != Nodes_SnapShot[i].GetWall(BOTTOM_WALL_) ||
 			Nodes[i].GetWall(RIGHT_WALL_) != Nodes_SnapShot[i].GetWall(RIGHT_WALL_) ||
-			Nodes[i].GetWall(TOP_WALL_) != Nodes_SnapShot[i].GetWall(TOP_WALL_))
+			Nodes[i].GetWall(TOP_WALL_) != Nodes_SnapShot[i].GetWall(TOP_WALL_) ||
+			Nodes[i].GetFlag() != Nodes_SnapShot[i].GetFlag())
 			indexes.push_back(i);
 	}
 
 	Nodes_SnapShot = Nodes;
 	return indexes;
+}
+
+void Grid::Node_Color(int node_ind, int & R, int & G, int & B)
+{
+	std::string flag = Nodes[node_ind].GetFlag();
+	if (flag != "")
+	{
+		if (flag == "START")
+		{
+			R = R_START_;
+			G = G_START_;
+			B = B_START_;
+			return;
+		}
+		else if (flag == "GOAL")
+		{
+			R = R_GOAL_;
+			G = G_GOAL_;
+			B = B_GOAL_;
+			return;
+		}
+	}
+	
+	{
+		float Color_modifier = 1.0f - Nodes[node_ind].IsWall();
+		R = R_REGULAR_ * Color_modifier;
+		G = G_REGULAR_ * Color_modifier;
+		B = B_REGULAR_ * Color_modifier;
+	}
+}
+
+void Grid::Draw_Path(int ind, HWND window_handle)
+{
+	//print("Drawing path! " + std::to_string(Resolve_paths[ind].nodes.size()) + "\n");
+	if (ind > Resolve_paths.size())
+		return;
+
+	Path path = Resolve_paths[ind];
+
+	int R = path.R;
+	int G = path.G;
+	int B = path.B;
+
+	InvalidateRect(window_handle, NULL, FALSE);
+	PAINTSTRUCT ps;
+	HDC hdc = BeginPaint(window_handle, &ps);
+	HBRUSH hbr = CreateSolidBrush(RGB(R, G, B));
+
+	for (int i = 0; i < Nodes.size(); ++i)
+		if (Nodes[i].GetFlag() == "IN_PATH")
+			Nodes[i].SetFlag("", 0.0f);
+
+	for(int i = 0; i < path.nodes.size(); ++i)
+	{
+		Node *tmp_node = path.nodes[i];
+		tmp_node->SetFlag("IN_PATH", 1.0f);
+
+		
+		float Shift_Right = (tmp_node->GetWall(LEFT_WALL_) * m_shift_Right_Const);
+		float Shift_Bottom = -(tmp_node->GetWall(BOTTOM_WALL_) * m_shift_Bottom_Const);
+		RECT lpcr = { tmp_node->GetVertex(0, X_) + Shift_Right, tmp_node->GetVertex(0, Y_), tmp_node->GetVertex(2, X_), tmp_node->GetVertex(2, Y_) + Shift_Bottom };
+		FillRect(hdc, &lpcr, hbr);
+	}
+	
+	EndPaint(window_handle, &ps);
 }

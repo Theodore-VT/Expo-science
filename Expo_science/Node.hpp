@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <ctime>
+#include <tuple>
 
 #include <windows.h>
 
@@ -45,6 +46,11 @@ public:
 	bool GetWall(unsigned int Wall_ind);
 	void SetWall(int Wall_ind, bool Value);
 
+	void SetFlag(std::string Key, float Value);
+	std::string GetFlag();
+	float GetFlagVal();
+	bool Has_flag();
+
 private:
 
 	std::vector<float> Vertices;
@@ -54,8 +60,18 @@ private:
 	float m_R, m_G, m_B;
 	static size_t Index;
 
+	std::tuple<std::string, float> m_additional_flag;
+
 	// Node configuration is |_
 	bool Walls[4];
+};
+
+struct Path
+{
+	Path(Node *startNode);
+	
+	std::vector<Node*> nodes;
+	int R, G, B;
 };
 
 #endif // ! NODE_H

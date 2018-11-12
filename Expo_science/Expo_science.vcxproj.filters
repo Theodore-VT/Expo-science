@@ -16,6 +16,9 @@
     <Filter Include="Header Files\Algorithms">
       <UniqueIdentifier>{64d0f987-e889-4b0f-8d16-6107c3bafe0c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Algorithms">
+      <UniqueIdentifier>{3248534f-a22c-4726-8b60-2a41ce6909ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -45,14 +48,14 @@
     <ClInclude Include="Dummy.hpp">
       <Filter>Header Files\Algorithms</Filter>
     </ClInclude>
-    <ClInclude Include="Maze_creator.h">
-      <Filter>Header Files\Algorithms</Filter>
-    </ClInclude>
-    <ClInclude Include="Node_array.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Header.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Maze_generator.hpp">
+      <Filter>Header Files\Algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="A_Star.hpp">
+      <Filter>Header Files\Algorithms</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -69,13 +72,16 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Algorithm.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Algorithms</Filter>
     </ClCompile>
     <ClCompile Include="Dummy.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="Maze_creator.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Maze_generator.cpp">
+      <Filter>Source Files\Algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="A_Star.cpp">
+      <Filter>Source Files\Algorithms</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

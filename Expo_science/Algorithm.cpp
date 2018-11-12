@@ -22,11 +22,18 @@ void Algorithm::Update(std::vector<Node> &Nodes)
 {
 	if (!Initialized)
 	{
-		this->Init(Nodes);
-		Initialized = true;
+		int InitCode = this->Init(Nodes);
+		if (InitCode == INIT_CODE_FAILED_) // Failed to initialize
+		{
+			print("Algorithm failed to initialize!\n");
+			Finished = true;
+			return;
+		}
+		else if(InitCode == INIT_CODE_SUCCES_)
+			Initialized = true;
 	}
 
-	if (!Finished)
+	if (!Finished && Initialized)
 	{
 		if (m_speed == INSTANTANEOUS)
 		{
@@ -54,10 +61,17 @@ void Algorithm::Update(std::vector<Node> &Nodes)
 		{
 			Finished = this->Update_core(Nodes);
 		}
+
+		if (Finished)
+			print("Finished algorithm " + std::to_string(m_ID) + "\n");
 		m_it++;
 	}
 
 	//print(std::string("Finished : " + std::to_string(Finished) + "\n"));
+}
+void Algorithm::Notify_node(int Node_ind)
+{
+	this->Notify_node_core(Node_ind);
 }
 int Algorithm::GetPriority()
 {

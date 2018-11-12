@@ -2,7 +2,6 @@
 #define MAZE_CREATOR_HPP
 
 #include "Algorithm.hpp"
-#include "Node_array.hpp"
 #include <stack>
 
 struct Neighbor
@@ -20,14 +19,14 @@ public:
 	virtual ~Maze_generator() {};
 protected:
 	bool Update_core(std::vector<Node> &Nodes);
-	void Init(std::vector<Node> &Nodes);
+	int Init(std::vector<Node> &Nodes);
+	void Notify_node_core(int Node_ind) {};
+
+private:
 
 	void RemoveWall(int ind, int Wall);
 	bool Has_unvisitedNodes();
 	bool Check_Neighbors(int ind);
-
-private:
-
 	int index(unsigned int ind);
 
 	//_2d_array<Node> m_nodes;

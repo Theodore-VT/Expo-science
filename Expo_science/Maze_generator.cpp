@@ -1,11 +1,10 @@
 
-#include "Maze_creator.h"
+#include "Maze_generator.hpp"
 
 
 
 Maze_generator::Maze_generator(int priority, int It_per_Step, int Width_nodes, int Height_nodes):
 Algorithm(priority, It_per_Step),
-//VisitedNodes_ind(Width_nodes * Height_nodes),
 m_width(Width_nodes),
 m_height(Height_nodes),
 visited_nodes(Width_nodes * Height_nodes)
@@ -52,7 +51,7 @@ bool Maze_generator::Update_core(std::vector<Node>& Nodes)
 	return true;
 }
 
-void Maze_generator::Init(std::vector<Node>& Nodes)
+int Maze_generator::Init(std::vector<Node>& Nodes)
 {
 	srand(time(NULL));
 
@@ -76,6 +75,8 @@ void Maze_generator::Init(std::vector<Node>& Nodes)
 			m_nodes->at(i).SetWall(TOP_WALL_, true);
 		}
 	}
+
+	return INIT_CODE_SUCCES_;
 }
 
 void Maze_generator::RemoveWall(int ind, int Wall)

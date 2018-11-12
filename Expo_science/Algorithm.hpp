@@ -9,6 +9,10 @@
 #define INSTANTANEOUS -1
 #define MAX_TIME_INSTANTANEOUS_PROCESS 3
 
+#define INIT_CODE_FAILED_		0
+#define INIT_CODE_NOT_READY_	1
+#define INIT_CODE_SUCCES_		2
+
 class Algorithm
 {
 public:
@@ -16,6 +20,8 @@ public:
 	virtual ~Algorithm() {};
 
 	void Update(std::vector<Node> &Nodes);
+	void Notify_node(int Node_ind);
+
 	int GetPriority();
 	int GetID();
 	int GetSpeed();
@@ -23,7 +29,8 @@ public:
 
 protected:
 	virtual bool Update_core(std::vector<Node> &Nodes) = 0;
-	virtual void Init(std::vector<Node> &Nodes) = 0;
+	virtual int  Init(std::vector<Node> &Nodes) = 0;
+	virtual void Notify_node_core(int Node_ind) = 0;
 
 	int GetIt();
 

@@ -129,3 +129,45 @@ void Node::SetWall(int Wall_ind, bool Value)
 
 	Walls[Wall_ind] = Value;
 }
+
+void Node::SetFlag(std::string Key, float Value)
+{
+	std::get<0>(m_additional_flag) = Key;
+	std::get<1>(m_additional_flag) = Value;
+}
+
+std::string Node::GetFlag()
+{
+	return std::get<0>(m_additional_flag);
+}
+
+float Node::GetFlagVal()
+{
+	return std::get<1>(m_additional_flag);
+}
+
+bool Node::Has_flag()
+{
+	if(std::get<0>(m_additional_flag) == "")
+		return false;
+
+	return true;
+}
+/*
+Path::Path(Node * node_)
+{
+	node = node_;
+	Came_From = nullptr;
+
+	R = rand() % 255;
+	G = rand() % 255;
+	B = rand() % 255;
+}*/
+
+Path::Path(Node *startNode)
+{
+	nodes.push_back(startNode);
+	R = rand() % 255;
+	G = rand() % 255;
+	B = rand() % 255;
+}

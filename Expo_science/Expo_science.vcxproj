@@ -156,12 +156,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Algorithm.hpp" />
+    <ClInclude Include="A_Star.hpp" />
     <ClInclude Include="Dummy.hpp" />
     <ClInclude Include="Grid.hpp" />
     <ClInclude Include="guicon.hpp" />
     <ClInclude Include="Header.h" />
-    <ClInclude Include="Node_array.hpp" />
-    <ClInclude Include="Maze_creator.h" />
+    <ClInclude Include="Maze_generator.hpp" />
     <ClInclude Include="Node.hpp" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -170,10 +170,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Algorithm.cpp" />
+    <ClCompile Include="A_Star.cpp" />
     <ClCompile Include="Dummy.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="guicon.cpp" />
-    <ClCompile Include="Maze_creator.cpp" />
+    <ClCompile Include="Maze_generator.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
