@@ -1,6 +1,6 @@
 #ifndef __GUICON_HPP__
 #define __GUICON_HPP__
-#ifdef _DEBUG
+//#ifdef _DEBUG
 
 #include <string>
 
@@ -16,7 +16,7 @@ void print(const char* msg);
 void print(String msg);
 void print(std::string msg);
 
-#endif
+//#endif
 #endif
 
 // End of File

@@ -11,9 +11,10 @@ using namespace std;
 #endif
 // maximum mumber of lines the output console should have
 static const WORD MAX_CONSOLE_LINES = 500;
-#ifdef _DEBUG
+//#ifdef _DEBUG
 void RedirectIOToConsole()
 {
+#ifdef _DEBUG
 	int hConHandle;
 	long lStdHandle;
 	CONSOLE_SCREEN_BUFFER_INFO coninfo;
@@ -51,23 +52,30 @@ void RedirectIOToConsole()
 	// make cout, wcout, cin, wcin, wcerr, cerr, wclog and clog
 	// point to console as well
 	ios::sync_with_stdio();
+#endif
 }
 
 void print(const char * msg)
 {
+#ifdef _DEBUG
 	_RPT0(_CRT_WARN, msg);
+#endif
 }
 
 void print(String msg)
 {
+#ifdef _DEBUG
 	_RPT0(_CRT_WARN, msg.c_str());
+#endif
 }
 
 void print(std::string msg)
 {
+#ifdef _DEBUG
 	_RPT0(_CRT_WARN, msg.c_str());
+#endif
 }
 
 
-#endif
+//#endif
 //End of File

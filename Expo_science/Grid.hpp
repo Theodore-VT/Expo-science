@@ -63,6 +63,8 @@ private:
 	std::vector<int> Get_ChangedNodes_ind();
 	void Node_Color(int node_ind, int &R, int &G, int &B);
 
+	POINT rotate_point(float cx, float cy, float angle, POINT p);
+	void Draw_Line(HDC hdc, int x1, int y1, int x2, int y2, int thinkness);
 	void Draw_Path(int ind, HWND window_handle);
 
 	int Last_node_shifted;
@@ -79,6 +81,9 @@ private:
 	std::vector<Algorithm*> Algorithms_to_update;
 	std::vector<Node> Nodes, Nodes_SnapShot;
 	std::vector<Path> Resolve_paths;
+	std::vector<Path> Resolve_paths_snapshots;
+	bool Just_finished_algo;
+	bool Finished = true;
 	Path Null_Path;
 };
 

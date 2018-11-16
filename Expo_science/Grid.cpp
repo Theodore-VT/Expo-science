@@ -4,10 +4,9 @@
 
 #include <string>
 #include <fstream>
-#include <objidl.h>
-#include <gdiplus.h>
-using namespace Gdiplus;
-#pragma comment (lib,"Gdiplus.lib")
+
+
+#define PI 3.14159265359
 
 #define R_REGULAR_ 255
 #define G_REGULAR_ 120
@@ -21,6 +20,7 @@ using namespace Gdiplus;
 #define G_GOAL_ 50
 #define B_GOAL_ 140
 
+
 Grid::Grid(int Width_nodes, int Height_nodes, int Width_px, int Height_px, std::string path_to_maze) :
 	m_NULL_node(0, 0, 0, 0),
 	Last_node_shifted(-1),
@@ -28,7 +28,8 @@ Grid::Grid(int Width_nodes, int Height_nodes, int Width_px, int Height_px, std::
 	Null_Path(nullptr),
 
 	m_algorithm_to_notify(0),
-	m_notify_steps(0)
+	m_notify_steps(0),
+	Just_finished_algo(false)
 {
 	this->Reset(Width_nodes, Height_nodes, Width_px, Height_px);
 }
@@ -129,6 +130,8 @@ void Grid::Load(const char * Filename)
 	else
 		print(std::string("Failed to open " + Filename_ + "\n"));
 	Load_stream.close();
+
+	this->Reset();
 }
 
 void Grid::Reset(int Width_nodes, int Height_nodes, int Width_px, int Height_px)
@@ -233,7 +236,8 @@ void Grid::Notify_algorithm_on_click(int Node_ind)
 void Grid::Update()
 {
 	int Highest_priority_found = 200; // Arbitrary big number
-	
+	Just_finished_algo = false;
+
 	for (int i = 0; i < Algorithms_to_update.size(); ++i)
 	{
 		int Algorithm_priority = Algorithms_to_update[i]->GetPriority();
@@ -243,7 +247,10 @@ void Grid::Update()
 			Algorithms_to_update[i]->Update(Nodes);
 
 			if (Algorithms_to_update[i]->Is_Finished())
+			{
+				Just_finished_algo = true;
 				Algorithms_to_update.erase(Algorithms_to_update.begin() + i);
+			}
 		}
 		if (Algorithm_priority < Highest_priority_found)
 			Highest_priority_found = Algorithm_priority;
@@ -255,45 +262,54 @@ void Grid::Update()
 
 void Grid::Show(HWND window_handle, bool Force_Redraw)
 {
-	std::vector<int> indexes_to_update;
-	
-	if (Force_Redraw)
+	if (Finished)
 	{
-		InvalidateRect(window_handle, NULL, TRUE);
-		indexes_to_update = All_indexes;
+		Finished = false;
+		std::vector<int> indexes_to_update;
+
+		if (Force_Redraw || Just_finished_algo)
+		{
+			Just_finished_algo = false;
+			InvalidateRect(window_handle, NULL, TRUE);
+			indexes_to_update = All_indexes;
+		}
+		else
+			indexes_to_update = this->Get_ChangedNodes_ind();
+
+		InvalidateRect(window_handle, NULL, FALSE);
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(window_handle, &ps);
+		HBRUSH invalidate_hbr = CreateSolidBrush(RGB(0, 0, 0));
+
+
+		for (int i = 0; i < indexes_to_update.size(); ++i)
+		{
+			int ind = indexes_to_update[i];
+			Node tmp_node = this->operator()(ind);
+
+			float Shift_Right = (tmp_node.GetWall(LEFT_WALL_) * m_shift_Right_Const);
+			float Shift_Bottom = -(tmp_node.GetWall(BOTTOM_WALL_) * m_shift_Bottom_Const);
+
+			RECT lpcr = { tmp_node.GetVertex(0, X_) + Shift_Right, tmp_node.GetVertex(0, Y_), tmp_node.GetVertex(2, X_), tmp_node.GetVertex(2, Y_) + Shift_Bottom };
+			RECT invalidate_lpcr = { tmp_node.GetVertex(0, X_), tmp_node.GetVertex(0, Y_), tmp_node.GetVertex(2, X_), tmp_node.GetVertex(2, Y_) };
+
+			FillRect(hdc, &invalidate_lpcr, invalidate_hbr);
+
+			int R, G, B;
+			this->Node_Color(ind, R, G, B);
+
+			HBRUSH hbr = CreateSolidBrush(RGB(R, G, B));
+			FillRect(hdc, &lpcr, hbr);
+		}
+
+		EndPaint(window_handle, &ps);
+		//::DeleteObject(hdc);
+
+		for (int i = 0; i < Resolve_paths.size(); ++i)
+			this->Draw_Path(i, window_handle);
+
+		Finished = true;
 	}
-	else
-		indexes_to_update = this->Get_ChangedNodes_ind();
-	
-	InvalidateRect(window_handle, NULL, FALSE);
-	PAINTSTRUCT ps;
-	HDC hdc = BeginPaint(window_handle, &ps);
-	HBRUSH invalidate_hbr = CreateSolidBrush(RGB(0, 0, 0));
-	
-	for (int i = 0; i < indexes_to_update.size(); ++i)
-	{
-		int ind = indexes_to_update[i];
-		Node tmp_node = this->operator()(ind);
-
-		float Shift_Right = (tmp_node.GetWall(LEFT_WALL_) * m_shift_Right_Const);
-		float Shift_Bottom = -(tmp_node.GetWall(BOTTOM_WALL_) * m_shift_Bottom_Const);
-
-		RECT lpcr = { tmp_node.GetVertex(0, X_) + Shift_Right, tmp_node.GetVertex(0, Y_), tmp_node.GetVertex(2, X_), tmp_node.GetVertex(2, Y_) + Shift_Bottom };
-		RECT invalidate_lpcr = { tmp_node.GetVertex(0, X_), tmp_node.GetVertex(0, Y_), tmp_node.GetVertex(2, X_), tmp_node.GetVertex(2, Y_) };
-		
-		FillRect(hdc, &invalidate_lpcr, invalidate_hbr);
-
-		int R, G, B;
-		this->Node_Color(ind, R, G, B);
-
-		HBRUSH hbr = CreateSolidBrush(RGB(R, G, B));
-		FillRect(hdc, &lpcr, hbr);
-	}
-	
-	EndPaint(window_handle, &ps);
-
-	for(int i = 0; i < Resolve_paths.size(); ++i)
-		this->Draw_Path(i, window_handle);
 }
 
 int Grid::GetInd_from_2dPos(int x, int y)
@@ -404,38 +420,62 @@ void Grid::Node_Color(int node_ind, int & R, int & G, int & B)
 	}
 }
 
+POINT Grid::rotate_point(float cx, float cy, float angle, POINT p)
+{
+	float s = sin(angle * PI / 180);
+	float c = cos(angle * PI / 180);
+
+	// translate point back to origin:
+	p.x -= cx;
+	p.y -= cy;
+
+	// rotate point
+	float xnew = p.x * c - p.y * s;
+	float ynew = p.x * s + p.y * c;
+
+	// translate point back:
+	p.x = xnew + cx;
+	p.y = ynew + cy;
+	return p;
+}
+
+void Grid::Draw_Line(HDC hdc, int x1, int y1, int x2, int y2, int thinkness)
+{
+
+}
+
 void Grid::Draw_Path(int ind, HWND window_handle)
 {
 	//print("Drawing path! " + std::to_string(Resolve_paths[ind].nodes.size()) + "\n");
 	if (ind > Resolve_paths.size())
 		return;
 
-	Path path = Resolve_paths[ind];
-
-	int R = path.R;
-	int G = path.G;
-	int B = path.B;
+	Path *path = &Resolve_paths[ind];
 
 	InvalidateRect(window_handle, NULL, FALSE);
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(window_handle, &ps);
-	HBRUSH hbr = CreateSolidBrush(RGB(R, G, B));
+	//HBRUSH hbr = CreateSolidBrush(RGB(R, G, B));
 
+	HPEN pen = CreatePen(PS_SOLID, 25, RGB(path->R, path->G, path->B));
+	SelectObject(hdc, pen);
+	
 	for (int i = 0; i < Nodes.size(); ++i)
 		if (Nodes[i].GetFlag() == "IN_PATH")
 			Nodes[i].SetFlag("", 0.0f);
 
-	for(int i = 0; i < path.nodes.size(); ++i)
+	if (path->nodes.size() > 1)
 	{
-		Node *tmp_node = path.nodes[i];
-		tmp_node->SetFlag("IN_PATH", 1.0f);
+		path->nodes[0]->SetFlag("IN_PATH", 1.0f);
+		::MoveToEx(hdc, path->nodes[0]->GetPos(X_), path->nodes[0]->GetPos(Y_), NULL);
 
-		
-		float Shift_Right = (tmp_node->GetWall(LEFT_WALL_) * m_shift_Right_Const);
-		float Shift_Bottom = -(tmp_node->GetWall(BOTTOM_WALL_) * m_shift_Bottom_Const);
-		RECT lpcr = { tmp_node->GetVertex(0, X_) + Shift_Right, tmp_node->GetVertex(0, Y_), tmp_node->GetVertex(2, X_), tmp_node->GetVertex(2, Y_) + Shift_Bottom };
-		FillRect(hdc, &lpcr, hbr);
+		for (int i = 1; i < path->nodes.size(); ++i)
+		{
+			path->nodes[i]->SetFlag("IN_PATH", 1.0f);
+
+			::LineTo(hdc, path->nodes[i]->GetPos(X_), path->nodes[i]->GetPos(Y_));
+		}
 	}
-	
 	EndPaint(window_handle, &ps);
+	//::DeleteObject(hdc);
 }

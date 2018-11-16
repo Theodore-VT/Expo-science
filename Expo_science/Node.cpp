@@ -30,6 +30,9 @@ Node::Node(float x, float y, float Width, float Height) :
 	Vertices.push_back(0.0f);				// Z
 
 	this->Change_Color(255, 0, 255);
+
+	m_x = m_x + Width / 2;
+	m_y = m_y + Height / 2;
 }
 
 Node::Node():
