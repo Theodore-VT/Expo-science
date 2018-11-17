@@ -21,7 +21,9 @@ bool A_Star::Update_core(std::vector<Node>& Nodes)
 {
 	if (!OpenSet.empty())
 	{
+		m_nodes[Current].node->SetFlag("", 0.0f);
 		Current = this->Get_Lowest_Fscore(OpenSet);
+		m_nodes[Current].node->SetFlag("CURRENT", 1.0f);
 
 		if (Current == Goal)
 			return true;
@@ -45,7 +47,7 @@ bool A_Star::Update_core(std::vector<Node>& Nodes)
 			if (std::find(OpenSet.begin(), OpenSet.end(), Neighbors[i]) == OpenSet.end())
 			{
 				OpenSet.push_back(Neighbors[i]);
-				m_nodes[Neighbors[i]].node->SetIsWall(0.5f);
+				//m_nodes[Neighbors[i]].node->SetIsWall(0.5f);
 			}
 			// if it is not a better path
 			else if (Try_GScore >= m_nodes[Neighbors[i]].Gscore)
@@ -122,8 +124,8 @@ void A_Star::ReconstructPath()
 {
 	A_Star_node *Chain = &m_nodes[Current];
 
-	for (int i = 0; i < m_path->nodes.size(); ++i)
-		m_path->nodes[i]->SetIsWall(0.2f);
+//	for (int i = 0; i < m_path->nodes.size(); ++i)
+//		m_path->nodes[i]->SetFlag("CURRENT", 1.0f);//SetIsWall(0.2f);
 
 	m_path->nodes.clear();
 	m_path->nodes.push_back(m_nodes[Current].node);

@@ -2,6 +2,7 @@
 #include "Grid.hpp"
 #include "guicon.hpp"
 
+#include <algorithm>
 #include <string>
 #include <fstream>
 
@@ -20,8 +21,10 @@
 #define G_GOAL_ 50
 #define B_GOAL_ 140
 
+#undef max
+#undef min
 
-Grid::Grid(int Width_nodes, int Height_nodes, int Width_px, int Height_px, std::string path_to_maze) :
+Grid::Grid(int Width_nodes, int Height_nodes, int Width_px, int Height_px, PAINTSTRUCT *ps_, std::string path_to_maze) :
 	m_NULL_node(0, 0, 0, 0),
 	Last_node_shifted(-1),
 	Highest_priority(200),	// Arbitrary big number
@@ -29,7 +32,8 @@ Grid::Grid(int Width_nodes, int Height_nodes, int Width_px, int Height_px, std::
 
 	m_algorithm_to_notify(0),
 	m_notify_steps(0),
-	Just_finished_algo(false)
+	Just_finished_algo(false)//,
+	//ps(ps_)
 {
 	this->Reset(Width_nodes, Height_nodes, Width_px, Height_px);
 }
@@ -137,6 +141,8 @@ void Grid::Load(const char * Filename)
 void Grid::Reset(int Width_nodes, int Height_nodes, int Width_px, int Height_px)
 {
 	Resolve_paths.clear();
+	Algorithms_to_update.clear();
+
 	if ((Width_nodes + Height_nodes + Width_px + Height_px) == -4)
 	{
 		for (int i = 0; i < Nodes.size(); ++i)
@@ -156,8 +162,10 @@ void Grid::Reset(int Width_nodes, int Height_nodes, int Width_px, int Height_px)
 		m_width_px_per_node = Width_px / Width_nodes;
 		m_height_px_per_node = Height_px / Height_nodes;
 
-		m_width_px = m_width_px_per_node * Width_nodes;
-		m_height_px = m_height_px_per_node * Height_nodes;
+		m_real_width_px = m_width_px_per_node * Width_nodes;
+		m_real_height_px = m_height_px_per_node * Height_nodes;
+
+		Path_stroke = std::min(m_width_px_per_node, m_height_px_per_node) * 0.6;
 
 		m_shift_Right_Const = m_width_px_per_node * 0.15;
 		m_shift_Bottom_Const = m_height_px_per_node * 0.15;
@@ -262,8 +270,10 @@ void Grid::Update()
 
 void Grid::Show(HWND window_handle, bool Force_Redraw)
 {
+	static int num_show = 0;
 	if (Finished)
 	{
+		//OutputDebugStringA(std::string("Shows : " + std::to_string(num_show) + "\n").c_str());
 		Finished = false;
 		std::vector<int> indexes_to_update;
 
@@ -271,19 +281,24 @@ void Grid::Show(HWND window_handle, bool Force_Redraw)
 		{
 			Just_finished_algo = false;
 			InvalidateRect(window_handle, NULL, TRUE);
+			//RedrawWindow(window_handle, NULL, NULL, RDW_ERASE);
 			indexes_to_update = All_indexes;
+			num_show = 0;
 		}
 		else
+		{
 			indexes_to_update = this->Get_ChangedNodes_ind();
-
-		InvalidateRect(window_handle, NULL, FALSE);
+			InvalidateRect(window_handle, NULL, FALSE);
+		}
+		
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(window_handle, &ps);
 		HBRUSH invalidate_hbr = CreateSolidBrush(RGB(0, 0, 0));
-
-
+		//HBRUSH hbr = CreateSolidBrush(RGB(255, 100, 25));
 		for (int i = 0; i < indexes_to_update.size(); ++i)
 		{
+			if (i == 0)
+				num_show++;
 			int ind = indexes_to_update[i];
 			Node tmp_node = this->operator()(ind);
 
@@ -299,16 +314,43 @@ void Grid::Show(HWND window_handle, bool Force_Redraw)
 			this->Node_Color(ind, R, G, B);
 
 			HBRUSH hbr = CreateSolidBrush(RGB(R, G, B));
+			//Sleep(0.5);
 			FillRect(hdc, &lpcr, hbr);
+			::DeleteObject(hbr);
+		}
+		::DeleteObject(invalidate_hbr);
+		for(int i = 0; i < Nodes.size(); ++i)
+			if(Nodes[i].GetFlag() == "IN_PATH")
+				Nodes[i].SetFlag("IN_PATH", 0.0f);
+		for (int ind = 0; ind < Resolve_paths.size(); ++ind)
+		{
+			Path *path = &Resolve_paths[ind];
+
+			HPEN pen = CreatePen(PS_SOLID, Path_stroke, RGB(path->R, path->G, path->B));
+			SelectObject(hdc, pen);
+
+			if (path->nodes.size() > 1)
+			{
+				path->nodes[0]->SetFlag("IN_PATH", 1.0f);
+				::MoveToEx(hdc, path->nodes[0]->GetPos(X_), path->nodes[0]->GetPos(Y_), NULL);
+
+				for (int i = 1; i < path->nodes.size(); ++i)
+				{
+					path->nodes[i]->SetFlag("IN_PATH", 1.0f);
+
+					LineTo(hdc, path->nodes[i]->GetPos(X_), path->nodes[i]->GetPos(Y_));
+				}
+			}
+			DeleteObject(pen);
 		}
 
 		EndPaint(window_handle, &ps);
-		//::DeleteObject(hdc);
-
-		for (int i = 0; i < Resolve_paths.size(); ++i)
-			this->Draw_Path(i, window_handle);
+		
+		::DeleteObject(hdc);
+		//::DeleteDC(hdc);
 
 		Finished = true;
+		//OutputDebugStringA("!_Showing!\n");
 	}
 }
 
@@ -317,8 +359,8 @@ int Grid::GetInd_from_2dPos(int x, int y)
 	if (x <= 0 || y <= 0 || x >= m_width_px || y >= m_height_px)
 		return -1;
 	
-	float Node_x = std::floor(static_cast<float>(x) / m_width_px * m_width_nodes);
-	float Node_y = std::floor(static_cast<float>(y) / m_height_px * m_height_nodes);
+	float Node_x = std::floor(static_cast<float>(x) / m_real_width_px * m_width_nodes);
+	float Node_y = std::floor(static_cast<float>(y) / m_real_height_px * m_height_nodes);
 
 
 	return Node_y * m_width_nodes + Node_x;
@@ -414,6 +456,10 @@ void Grid::Node_Color(int node_ind, int & R, int & G, int & B)
 	
 	{
 		float Color_modifier = 1.0f - Nodes[node_ind].IsWall();
+
+		if (flag == "CURRENT")
+			Color_modifier = 0.5f;
+
 		R = R_REGULAR_ * Color_modifier;
 		G = G_REGULAR_ * Color_modifier;
 		B = B_REGULAR_ * Color_modifier;
@@ -455,7 +501,6 @@ void Grid::Draw_Path(int ind, HWND window_handle)
 	InvalidateRect(window_handle, NULL, FALSE);
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(window_handle, &ps);
-	//HBRUSH hbr = CreateSolidBrush(RGB(R, G, B));
 
 	HPEN pen = CreatePen(PS_SOLID, 25, RGB(path->R, path->G, path->B));
 	SelectObject(hdc, pen);
@@ -478,4 +523,5 @@ void Grid::Draw_Path(int ind, HWND window_handle)
 	}
 	EndPaint(window_handle, &ps);
 	//::DeleteObject(hdc);
+	::DeleteDC(hdc);
 }

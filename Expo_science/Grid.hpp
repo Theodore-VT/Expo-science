@@ -21,7 +21,7 @@ friend class Grid_manager;
 public:
 
 	// Width in nodes
-	Grid(int Width_nodes, int Height_nodes, int Width_px, int Height_px, std::string path_to_maze = "");
+	Grid(int Width_nodes, int Height_nodes, int Width_px, int Height_px, PAINTSTRUCT *ps_, std::string path_to_maze = "");
 
 	// The () operator will be using OpenGL's coordinates system to make everything simpler
 	Node &operator ()(float x, float y);
@@ -69,6 +69,7 @@ private:
 
 	int Last_node_shifted;
 	int m_width_nodes, m_width_px, m_height_nodes, m_height_px;
+	int m_real_width_px, m_real_height_px;
 	int m_width_px_per_node, m_height_px_per_node;
 	Node m_NULL_node;
 	int Highest_priority;
@@ -84,6 +85,8 @@ private:
 	std::vector<Path> Resolve_paths_snapshots;
 	bool Just_finished_algo;
 	bool Finished = true;
+	int Path_stroke;
+	//PAINTSTRUCT *ps;
 	Path Null_Path;
 };
 
