@@ -1,9 +1,9 @@
 
-#include "Maze_generator.hpp"
+#include "Recursive_backtracker.hpp"
 
 
 
-Maze_generator::Maze_generator(int priority, int It_per_Step, int Width_nodes, int Height_nodes):
+Recursive_backtracker::Recursive_backtracker(int priority, int It_per_Step, int Width_nodes, int Height_nodes):
 Algorithm(priority, It_per_Step),
 m_width(Width_nodes),
 m_height(Height_nodes),
@@ -14,7 +14,7 @@ visited_nodes(Width_nodes * Height_nodes)
 	std::fill(visited_nodes.begin(), visited_nodes.end(), false);
 }
 
-bool Maze_generator::Update_core(std::vector<Node>& Nodes)
+bool Recursive_backtracker::Update_core(std::vector<Node>& Nodes, Path &path_to_update)
 {
 	if (this->Has_unvisitedNodes())
 	{
@@ -51,7 +51,7 @@ bool Maze_generator::Update_core(std::vector<Node>& Nodes)
 	return true;
 }
 
-int Maze_generator::Init(std::vector<Node>& Nodes)
+int Recursive_backtracker::Init(std::vector<Node>& Nodes)
 {
 	srand(time(NULL));
 
@@ -79,7 +79,7 @@ int Maze_generator::Init(std::vector<Node>& Nodes)
 	return INIT_CODE_SUCCES_;
 }
 
-void Maze_generator::RemoveWall(int ind, int Wall)
+void Recursive_backtracker::RemoveWall(int ind, int Wall)
 {
 	if (Wall == TOP_WALL_)
 	{
@@ -111,7 +111,7 @@ void Maze_generator::RemoveWall(int ind, int Wall)
 	}
 }
 
-bool Maze_generator::Has_unvisitedNodes()
+bool Recursive_backtracker::Has_unvisitedNodes()
 {
 	for (int i = 0; i < m_nodes->size(); ++i)
 	{
@@ -122,7 +122,7 @@ bool Maze_generator::Has_unvisitedNodes()
 	return false;
 }
 
-bool Maze_generator::Check_Neighbors(int ind)
+bool Recursive_backtracker::Check_Neighbors(int ind)
 {
 	Neighbors.clear();
 
@@ -142,7 +142,7 @@ bool Maze_generator::Check_Neighbors(int ind)
 	return false;
 }
 
-int Maze_generator::index(unsigned int ind)
+int Recursive_backtracker::index(unsigned int ind)
 {
 	if (ind < m_nodes->size() && m_nodes->at(ind).IsWall(true) != PERMANENT_WALL)
 		return ind;

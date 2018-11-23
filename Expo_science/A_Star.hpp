@@ -26,11 +26,11 @@ struct A_Star_node
 class A_Star : public Algorithm
 {
 public:
-	A_Star(int priority, int It_per_Step, int Width_nodes, int Height_nodes, Path *path);
+	A_Star(int priority, int It_per_Step, int Width_nodes, int Height_nodes, int path);
 	~A_Star() {};
 
 protected:
-	bool Update_core(std::vector<Node> &Nodes);
+	bool Update_core(std::vector<Node> &Nodes, Path &path_to_change);
 	int Init(std::vector<Node> &Nodes);
 	void Notify_node_core(int Node_ind);
 
@@ -41,11 +41,10 @@ private:
 	float Xpos(int ind);
 	float Ypos(int ind);
 
-	void ReconstructPath();
+	void ReconstructPath(Path &output_path);
 
 	bool Index(unsigned int ind, bool Security = 0);
-	int Compare_nodes(A_Star_node &nd1, A_Star_node &nd2);
-
+	
 	float EstimateDistance(int nd1, int nd2);
 	int Get_Lowest_Fscore(std::vector<int>& nodes_ind);
 
@@ -55,7 +54,7 @@ private:
 	std::vector<int> OpenSet, ClosedSet;
 
 	int Start, Goal, Current;
-	Path *m_path;
+	int m_path;
 	int m_width, m_height;
 };
 

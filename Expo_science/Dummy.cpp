@@ -8,7 +8,7 @@ Dummy::Dummy(int priority, int It_per_Step):
 	m_ID = 1;
 }
 
-bool Dummy::Update_core(std::vector<Node>& Nodes)
+bool Dummy::Update_core(std::vector<Node>& Nodes, Path &path_to_update)
 {
 	//print("blob\n");
 	static int i = 0;

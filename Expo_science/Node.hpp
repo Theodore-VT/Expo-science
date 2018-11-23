@@ -29,6 +29,8 @@
 #define RIGHT_WALL_		2
 #define TOP_WALL_		3
 
+#define NOT_A_WALL_ 0.2f
+
 class Node
 {
 public:
@@ -43,8 +45,8 @@ public:
 	float GetVertex(int ind, int Component);
 	float IsWall(bool Raw_val = false);
 	void SetIsWall(float Value);
-	bool GetWall(unsigned int Wall_ind);
-	void SetWall(int Wall_ind, bool Value);
+	float GetWall(unsigned int Wall_ind, bool Raw_val = false);
+	void SetWall(int Wall_ind, float Value);
 
 	void SetFlag(std::string Key, float Value);
 	std::string GetFlag();
@@ -63,16 +65,19 @@ private:
 	std::tuple<std::string, float> m_additional_flag;
 
 	// Node configuration is |_
-	bool Walls[4];
+	float Walls[4];
 };
 
 struct Path
 {
 	Path(Node *startNode);
+	Path();
 	
 	std::vector<Node*> nodes;
 	int R, G, B;
 };
+
+int _2D_2_1D_ind(int x, int y, int width);
 
 #endif // ! NODE_H
 

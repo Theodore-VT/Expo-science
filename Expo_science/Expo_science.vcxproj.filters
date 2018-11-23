@@ -19,6 +19,18 @@
     <Filter Include="Source Files\Algorithms">
       <UniqueIdentifier>{3248534f-a22c-4726-8b60-2a41ce6909ee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Algorithms\Maze_solvers">
+      <UniqueIdentifier>{352682ea-7420-4baa-8571-af215aac0518}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Algorithms\Maze_generator">
+      <UniqueIdentifier>{f75e0400-19f1-4f0b-b7d1-4cce57a425fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Algorithms\Maze_solvers">
+      <UniqueIdentifier>{478a7df0-1884-459e-a311-5d5243c2ac8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Algorithms\Maze_generator">
+      <UniqueIdentifier>{3c635652-dab2-4ee0-a24e-86772c6e94df}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -51,11 +63,14 @@
     <ClInclude Include="Header.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Maze_generator.hpp">
-      <Filter>Header Files\Algorithms</Filter>
-    </ClInclude>
     <ClInclude Include="A_Star.hpp">
-      <Filter>Header Files\Algorithms</Filter>
+      <Filter>Header Files\Algorithms\Maze_solvers</Filter>
+    </ClInclude>
+    <ClInclude Include="Recursive_backtracker.hpp">
+      <Filter>Header Files\Algorithms\Maze_generator</Filter>
+    </ClInclude>
+    <ClInclude Include="Recursive_division.hpp">
+      <Filter>Header Files\Algorithms\Maze_generator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -77,11 +92,14 @@
     <ClCompile Include="Dummy.cpp">
       <Filter>Source Files\Algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="Maze_generator.cpp">
-      <Filter>Source Files\Algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="A_Star.cpp">
-      <Filter>Source Files\Algorithms</Filter>
+      <Filter>Source Files\Algorithms\Maze_solvers</Filter>
+    </ClCompile>
+    <ClCompile Include="Recursive_backtracker.cpp">
+      <Filter>Source Files\Algorithms\Maze_generator</Filter>
+    </ClCompile>
+    <ClCompile Include="Recursive_division.cpp">
+      <Filter>Source Files\Algorithms\Maze_generator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

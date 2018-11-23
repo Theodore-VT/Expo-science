@@ -1,5 +1,5 @@
-#ifndef MAZE_CREATOR_HPP
-#define MAZE_CREATOR_HPP
+#ifndef RECURSIVE_BACKTRACKER_HPP
+#define RECURSIVE_BACKTRACKER_HPP
 
 #include "Algorithm.hpp"
 #include <stack>
@@ -12,13 +12,13 @@ struct Neighbor
 	bool Visited;
 };
 
-class Maze_generator : public Algorithm
+class Recursive_backtracker : public Algorithm
 {
 public:
-	Maze_generator(int priority, int It_per_Step, int Width_nodes, int Height_nodes);
-	virtual ~Maze_generator() {};
+	Recursive_backtracker(int priority, int It_per_Step, int Width_nodes, int Height_nodes);
+	virtual ~Recursive_backtracker() {};
 protected:
-	bool Update_core(std::vector<Node> &Nodes);
+	bool Update_core(std::vector<Node> &Nodes, Path &path_to_update);
 	int Init(std::vector<Node> &Nodes);
 	void Notify_node_core(int Node_ind) {};
 
@@ -36,7 +36,7 @@ private:
 	std::stack<int> Stack;
 
 	int Current;
-	//std::vector<std::vector<Node_maze_generator>> m_nodes;
+	//std::vector<std::vector<Node_Recursive_backtracker>> m_nodes;
 
 	int m_width, m_height;
 };

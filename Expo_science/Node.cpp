@@ -117,15 +117,18 @@ void Node::SetIsWall(float Value)
 
 }
 
-bool Node::GetWall(unsigned int Wall_ind)
+float Node::GetWall(unsigned int Wall_ind, bool Raw_val)
 {
 	if (Wall_ind > 3)
 		return 0;
 
-	return Walls[Wall_ind];
+	if (Raw_val)
+		return Walls[Wall_ind];
+	else
+		return (bool)(Walls[Wall_ind] > NOT_A_WALL_);
 }
 
-void Node::SetWall(int Wall_ind, bool Value)
+void Node::SetWall(int Wall_ind, float Value)
 {
 	if (Wall_ind > 3)
 		return;
@@ -173,4 +176,16 @@ Path::Path(Node *startNode)
 	R = rand() % 255;
 	G = rand() % 255;
 	B = rand() % 255;
+}
+
+Path::Path()
+{
+	R = rand() % 255;
+	G = rand() % 255;
+	B = rand() % 255;
+}
+
+int _2D_2_1D_ind(int x, int y, int width)
+{
+	return y * width + x;
 }

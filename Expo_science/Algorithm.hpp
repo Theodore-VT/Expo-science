@@ -19,22 +19,24 @@ public:
 	Algorithm(int priority, int It_per_Step);
 	virtual ~Algorithm() {};
 
-	void Update(std::vector<Node> &Nodes);
+	void Update(std::vector<Node> &Nodes, Path &path_to_change);
 	void Notify_node(int Node_ind);
 
 	int GetPriority();
 	int GetID();
 	int GetSpeed();
 	bool Is_Finished();
+	int GetPathIRL();
 
 protected:
-	virtual bool Update_core(std::vector<Node> &Nodes) = 0;
+	virtual bool Update_core(std::vector<Node> &Nodes, Path &path_to_change) = 0;
 	virtual int  Init(std::vector<Node> &Nodes) = 0;
 	virtual void Notify_node_core(int Node_ind) = 0;
 
 	int GetIt();
 
 	int m_ID;
+	int m_path_IRL;
 
 private:
 	

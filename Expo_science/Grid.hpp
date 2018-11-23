@@ -13,6 +13,7 @@
 #define RANDOM			2
 
 #define LAST_PATH	   -1
+#define LAST_ELEM	   -1
 
 class Grid
 {
@@ -54,8 +55,10 @@ public:
 	int Width_nd();
 	int Height_nd();
 
-	Path *GetPath(int ind);
+	/*std::shared_ptr<Path>*/int GetPath(int ind);
 	void AddPath(unsigned int Start_node);
+
+	int GetAlgorithmID(int ind);
 
 private:
 

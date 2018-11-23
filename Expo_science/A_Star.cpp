@@ -4,26 +4,31 @@
 #include "guicon.hpp"
 #include <algorithm>
 
-A_Star::A_Star(int priority, int It_per_Step, int Width_nodes, int Height_nodes, Path *path):
+A_Star::A_Star(int priority, int It_per_Step, int Width_nodes, int Height_nodes, int path):
 	Algorithm(priority, It_per_Step),
 	m_width(Width_nodes),
-	m_height(Height_nodes),
-	m_path(path)
+	m_height(Height_nodes)//,
+	//m_path_IRL(path)
 {
-	m_ID = 3;
+	m_path_IRL = path;
+	m_ID = rand() % 25555892;
 
 	Start = 0;
 	Goal  = 0;
-	path->nodes.clear();
+	//path->nodes.clear();
 }
 
-bool A_Star::Update_core(std::vector<Node>& Nodes)
+bool A_Star::Update_core(std::vector<Node>& Nodes, Path &path_to_change)
 {
 	if (!OpenSet.empty())
 	{
-		m_nodes[Current].node->SetFlag("", 0.0f);
+		if(Current != Start && Current != Goal)
+			m_nodes[Current].node->SetFlag("", 0.0f);
+		
 		Current = this->Get_Lowest_Fscore(OpenSet);
-		m_nodes[Current].node->SetFlag("CURRENT", 1.0f);
+		
+		if(Current != Start && Current != Goal)
+			m_nodes[Current].node->SetFlag("CURRENT", 1.0f);
 
 		if (Current == Goal)
 			return true;
@@ -58,7 +63,7 @@ bool A_Star::Update_core(std::vector<Node>& Nodes)
 			m_nodes[Neighbors[i]].Fscore = Try_GScore + this->EstimateDistance(Neighbors[i], Goal); 
 		}
 
-		ReconstructPath();
+		ReconstructPath(path_to_change);
 		return false;
 	}
 
@@ -120,19 +125,18 @@ float A_Star::Ypos(int ind)
 	return static_cast<int>(ind / m_height);
 }
 
-void A_Star::ReconstructPath()
+void A_Star::ReconstructPath(Path &output_path)
 {
 	A_Star_node *Chain = &m_nodes[Current];
 
 //	for (int i = 0; i < m_path->nodes.size(); ++i)
 //		m_path->nodes[i]->SetFlag("CURRENT", 1.0f);//SetIsWall(0.2f);
 
-	m_path->nodes.clear();
-	m_path->nodes.push_back(m_nodes[Current].node);
+	output_path.nodes.clear();
+	output_path.nodes.push_back(m_nodes[Current].node);
 	while (Chain->Came_from != nullptr)
 	{
-		m_path->nodes.push_back(Chain->Came_from->node);
-		//Chain->Came_from->node->SetIsWall(0.98);
+		output_path.nodes.push_back(Chain->Came_from->node);
 		Chain = Chain->Came_from;
 	}
 

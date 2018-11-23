@@ -149,7 +149,10 @@ void Grid::Reset(int Width_nodes, int Height_nodes, int Width_px, int Height_px)
 			if (Nodes[i].IsWall(true) != PERMANENT_WALL)
 			{
 				Nodes[i].SetFlag("", 0.0f);
+				//if(i % 2 == 0)
 				Nodes[i].SetIsWall(0.0f);
+				//else
+				//	Nodes[i].SetIsWall(0.5f);
 			}
 	}
 	else
@@ -252,7 +255,11 @@ void Grid::Update()
 
 		if (Algorithm_priority == Highest_priority)
 		{
-			Algorithms_to_update[i]->Update(Nodes);
+			int Path_IRL = Algorithms_to_update[i]->GetPathIRL();
+			if (Path_IRL < 0 || Path_IRL > Resolve_paths.size() - 1)
+				Algorithms_to_update[i]->Update(Nodes, Null_Path);
+			else
+				Algorithms_to_update[i]->Update(Nodes, Resolve_paths[Path_IRL]);
 
 			if (Algorithms_to_update[i]->Is_Finished())
 			{
@@ -321,7 +328,8 @@ void Grid::Show(HWND window_handle, bool Force_Redraw)
 		::DeleteObject(invalidate_hbr);
 		for(int i = 0; i < Nodes.size(); ++i)
 			if(Nodes[i].GetFlag() == "IN_PATH")
-				Nodes[i].SetFlag("IN_PATH", 0.0f);
+				Nodes[i].SetFlag("", 0.0f);
+
 		for (int ind = 0; ind < Resolve_paths.size(); ++ind)
 		{
 			Path *path = &Resolve_paths[ind];
@@ -331,7 +339,7 @@ void Grid::Show(HWND window_handle, bool Force_Redraw)
 
 			if (path->nodes.size() > 1)
 			{
-				path->nodes[0]->SetFlag("IN_PATH", 1.0f);
+				//path->nodes[0]->SetFlag("IN_PATH", 1.0f);
 				::MoveToEx(hdc, path->nodes[0]->GetPos(X_), path->nodes[0]->GetPos(Y_), NULL);
 
 				for (int i = 1; i < path->nodes.size(); ++i)
@@ -391,17 +399,20 @@ int Grid::Height_nd()
 	return m_height_nodes;
 }
 
-Path * Grid::GetPath(int ind)
+int Grid::GetPath(int ind)
 {
 	if (ind >= (int)Resolve_paths.size())
-		return &Null_Path;
+		return -1;//std::shared_ptr<Path>(&Null_Path);
 	else if (ind == LAST_PATH)
 	{
 		print("Return last path !\n");
-		return &Resolve_paths[Resolve_paths.size() - 1];
+		return /*this->GetPath(*/Resolve_paths.size() -1;
 	}
 	else if (ind >= 0)
-		return &Resolve_paths[ind];
+	{
+		//Path path = Resolve_paths[ind];
+		return /*std::shared_ptr<Path>(/*&Resolve_paths[ind]&Resolve_paths.data()[*/ind;// ]);
+	}
 }
 
 void Grid::AddPath(unsigned int Start_node)
@@ -409,9 +420,19 @@ void Grid::AddPath(unsigned int Start_node)
 	if (Start_node > Nodes.size())
 		return;
 
-	Resolve_paths.push_back(Path(&Nodes[Start_node]));
+	Resolve_paths.push_back(Path());
 
 	print("Number of paths : " + std::to_string(Resolve_paths.size()) + "\n");
+}
+
+int Grid::GetAlgorithmID(int ind)
+{
+	if (ind >= (int)Algorithms_to_update.size())
+		return 0;
+	if (ind == LAST_ELEM)
+		return this->GetAlgorithmID(Algorithms_to_update.size() - 1);
+
+	return Algorithms_to_update[ind]->GetID();
 }
 
 std::vector<int> Grid::Get_ChangedNodes_ind()
@@ -427,6 +448,17 @@ std::vector<int> Grid::Get_ChangedNodes_ind()
 			Nodes[i].GetWall(TOP_WALL_) != Nodes_SnapShot[i].GetWall(TOP_WALL_) ||
 			Nodes[i].GetFlag() != Nodes_SnapShot[i].GetFlag())
 			indexes.push_back(i);
+
+		//if (Nodes[i].GetWall(LEFT_WALL_, true) != Nodes_SnapShot[i].GetWall(LEFT_WALL_, true) ||
+		//	Nodes[i].GetWall(BOTTOM_WALL_, true) != Nodes_SnapShot[i].GetWall(BOTTOM_WALL_, true) ||
+		//	Nodes[i].GetWall(RIGHT_WALL_, true) != Nodes_SnapShot[i].GetWall(RIGHT_WALL_, true) ||
+		//	Nodes[i].GetWall(TOP_WALL_, true) != Nodes_SnapShot[i].GetWall(TOP_WALL_, true))
+		//{
+		//	OutputDebugStringA(std::string(std::to_string(Nodes[i].GetWall(LEFT_WALL_, true)) + ",  " +
+		//								   std::to_string(Nodes[i].GetWall(BOTTOM_WALL_, true)) + ",  " +
+		//								   std::to_string(Nodes[i].GetWall(RIGHT_WALL_, true)) + ",  " +
+		//								   std::to_string(Nodes[i].GetWall(TOP_WALL_, true)) + "\n").c_str());
+		//}
 	}
 
 	Nodes_SnapShot = Nodes;
@@ -440,6 +472,7 @@ void Grid::Node_Color(int node_ind, int & R, int & G, int & B)
 	{
 		if (flag == "START")
 		{
+			print("Update the start node!\n");
 			R = R_START_;
 			G = G_START_;
 			B = B_START_;
@@ -511,7 +544,7 @@ void Grid::Draw_Path(int ind, HWND window_handle)
 
 	if (path->nodes.size() > 1)
 	{
-		path->nodes[0]->SetFlag("IN_PATH", 1.0f);
+		//path->nodes[0]->SetFlag("IN_PATH", 1.0f);
 		::MoveToEx(hdc, path->nodes[0]->GetPos(X_), path->nodes[0]->GetPos(Y_), NULL);
 
 		for (int i = 1; i < path->nodes.size(); ++i)

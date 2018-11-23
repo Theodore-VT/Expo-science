@@ -15,10 +15,11 @@ Algorithm::Algorithm(int priority, int It_per_Step) :
 	m_initialSpeed(It_per_Step),
 	Finished(false),
 	Initialized(false),
+	m_path_IRL(-2),
 	m_ID(0)					// Base class doesn't need ID
 {};
 
-void Algorithm::Update(std::vector<Node> &Nodes)
+void Algorithm::Update(std::vector<Node> &Nodes, Path &path_to_change)
 {
 	if (!Initialized)
 	{
@@ -42,7 +43,7 @@ void Algorithm::Update(std::vector<Node> &Nodes)
 			bool succes = false;
 			while (1)
 			{
-				if (this->Update_core(Nodes))
+				if (this->Update_core(Nodes, path_to_change))
 				{
 					succes = true;
 					break;
@@ -59,7 +60,7 @@ void Algorithm::Update(std::vector<Node> &Nodes)
 		}
 		else if (1)
 		{
-			Finished = this->Update_core(Nodes);
+			Finished = this->Update_core(Nodes, path_to_change);
 		}
 
 		if (Finished)
@@ -88,6 +89,11 @@ int Algorithm::GetSpeed()
 bool Algorithm::Is_Finished()
 {
 	return Finished;
+}
+
+int Algorithm::GetPathIRL()
+{
+	return m_path_IRL;
 }
 
 int Algorithm::GetIt()
