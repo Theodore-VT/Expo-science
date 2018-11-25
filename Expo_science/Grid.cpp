@@ -485,6 +485,13 @@ void Grid::Node_Color(int node_ind, int & R, int & G, int & B)
 			B = B_GOAL_;
 			return;
 		}
+		else if (flag == "OPENSET")
+		{
+			R = 25;
+			G = 150;
+			B = 255;
+			return;
+		}
 	}
 	
 	{

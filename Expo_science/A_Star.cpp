@@ -15,23 +15,25 @@ A_Star::A_Star(int priority, int It_per_Step, int Width_nodes, int Height_nodes,
 
 	Start = 0;
 	Goal  = 0;
-	//path->nodes.clear();
 }
 
 bool A_Star::Update_core(std::vector<Node>& Nodes, Path &path_to_change)
 {
 	if (!OpenSet.empty())
 	{
-		if(Current != Start && Current != Goal)
+		if(Current != Start)
 			m_nodes[Current].node->SetFlag("", 0.0f);
 		
 		Current = this->Get_Lowest_Fscore(OpenSet);
 		
-		if(Current != Start && Current != Goal)
+		if(Current != Start)
 			m_nodes[Current].node->SetFlag("CURRENT", 1.0f);
 
 		if (Current == Goal)
+		{
+			ReconstructPath(path_to_change);
 			return true;
+		}
 		
 		ClosedSet.push_back(Current);
 		OpenSet.erase(std::remove(OpenSet.begin(), OpenSet.end(), Current), OpenSet.end());
@@ -50,15 +52,13 @@ bool A_Star::Update_core(std::vector<Node>& Nodes, Path &path_to_change)
 			
 			// if the neighbor is not in the open set (new node)
 			if (std::find(OpenSet.begin(), OpenSet.end(), Neighbors[i]) == OpenSet.end())
-			{
 				OpenSet.push_back(Neighbors[i]);
-				//m_nodes[Neighbors[i]].node->SetIsWall(0.5f);
-			}
 			// if it is not a better path
 			else if (Try_GScore >= m_nodes[Neighbors[i]].Gscore)
 				continue;
 			
-			m_nodes[Neighbors[i]].Came_from = &m_nodes[Current];
+			//m_nodes[Neighbors[i]].Came_from = &m_nodes[Current];
+			CameFrom[Neighbors[i]] = Current;
 			m_nodes[Neighbors[i]].Gscore = Try_GScore;
 			m_nodes[Neighbors[i]].Fscore = Try_GScore + this->EstimateDistance(Neighbors[i], Goal); 
 		}
@@ -77,16 +77,16 @@ int A_Star::Init(std::vector<Node>& Nodes)
 	m_nodes.clear();
 	OpenSet.clear();
 	ClosedSet.clear();
+	CameFrom.clear();
 	
 	for (int i = 0; i < Nodes.size(); ++i)
 	{
 		m_nodes.push_back(A_Star_node(&Nodes[i]));
+		CameFrom.push_back(-1);
 	}
 
 	if (Start == 0 || Goal == 0)
-	{
 		return INIT_CODE_NOT_READY_;
-	}
 
 	OpenSet.push_back(Start);
 	m_nodes[Start].Gscore = 0;
@@ -98,21 +98,20 @@ int A_Star::Init(std::vector<Node>& Nodes)
 
 void A_Star::Notify_node_core(int Node_ind)
 {
-	//if (this->Index(Node_ind))
+	if (Start == 0)
 	{
-		if (Start == 0)
-		{
-			Start = Node_ind;
-			m_nodes[Start].node->SetFlag("START", 1.0f);
-			m_nodes[Start].node->SetIsWall(0.0f);
-		}
-		else if (Goal == 0)
-		{
-			Goal = Node_ind;
-			m_nodes[Goal].node->SetFlag("GOAL", 1.0f);
-			m_nodes[Goal].node->SetIsWall(0.0f);
-		}
+		Start = Node_ind;
+		m_nodes[Start].node->SetFlag("START", 1.0f);
+		m_nodes[Start].node->SetIsWall(0.0f);
 	}
+	else if (Goal == 0)
+	{
+		Goal = Node_ind;
+		m_nodes[Goal].node->SetFlag("GOAL", 1.0f);
+		m_nodes[Goal].node->SetIsWall(0.0f);
+	}
+
+	print("Node notification : " + std::to_string(Node_ind) + " -> ( " + std::to_string(this->Xpos(Node_ind)) + ",  " + std::to_string(this->Ypos(Node_ind)) + " )\n");
 }
 
 float A_Star::Xpos(int ind)
@@ -127,20 +126,19 @@ float A_Star::Ypos(int ind)
 
 void A_Star::ReconstructPath(Path &output_path)
 {
-	A_Star_node *Chain = &m_nodes[Current];
-
-//	for (int i = 0; i < m_path->nodes.size(); ++i)
-//		m_path->nodes[i]->SetFlag("CURRENT", 1.0f);//SetIsWall(0.2f);
-
 	output_path.nodes.clear();
-	output_path.nodes.push_back(m_nodes[Current].node);
-	while (Chain->Came_from != nullptr)
-	{
-		output_path.nodes.push_back(Chain->Came_from->node);
-		Chain = Chain->Came_from;
-	}
 
-	//m_nodes[Current].node->SetIsWall(0.75f);
+	int CurrNode = Current;
+
+	while (1)
+	{
+		if (CurrNode == -1)
+			return;
+
+		output_path.nodes.push_back(m_nodes[CurrNode].node);
+
+		CurrNode = CameFrom[CurrNode];
+	}
 }
 
 bool A_Star::Index(unsigned int ind, bool Security)
@@ -160,10 +158,8 @@ float A_Star::EstimateDistance(int nd1, int nd2)
 		print("bad index!\n");
 		return 0;
 	}
-	//return std::sqrtf(std::powf(this->Xpos(nd1) - this->Xpos(nd2), 2.0) +  
-	//				  std::powf(this->Ypos(nd1) - this->Ypos(nd2), 2.0));
-
-	return 1 * (std::fabsf(this->Xpos(nd1) - this->Xpos(nd2)) + std::fabsf(this->Ypos(nd1) - this->Ypos(nd2)));
+	
+	return (std::fabsf(this->Xpos(nd1) - this->Xpos(nd2)) + std::fabsf(this->Ypos(nd1) - this->Ypos(nd2)));
 }
 
 int A_Star::Get_Lowest_Fscore(std::vector<int>& nodes_ind)
@@ -207,10 +203,13 @@ A_Star_node::A_Star_node(Node * node_)
 {
 	node = node_;
 
-	Came_from = nullptr;
-
 	Gscore = POSITIVE_INFINITY;
 	Fscore = POSITIVE_INFINITY;
+}
+
+A_Star_node::~A_Star_node()
+{
+	node = nullptr;
 }
 
 bool A_Star_node::IsPermanentWall()

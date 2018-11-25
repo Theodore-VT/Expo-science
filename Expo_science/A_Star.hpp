@@ -10,9 +10,10 @@
 struct A_Star_node
 {
 	A_Star_node(Node *node_);
+	~A_Star_node();
 
 	Node* node; // Pointer to the actual node
-	A_Star_node *Came_from; // Pointer to the previous node on the path
+	//A_Star_node *Came_from; // Pointer to the previous node on the path
 
 	float Gscore; // Cost to go to this node from the start using the path
 	float Fscore; // Cost to go from this node to the end using heuristic estimation
@@ -51,7 +52,7 @@ private:
 	void GetNeighbors(int node_ind, std::vector<int> &Neighbors);
 
 	std::vector<A_Star_node> m_nodes;
-	std::vector<int> OpenSet, ClosedSet;
+	std::vector<int> OpenSet, ClosedSet, CameFrom;
 
 	int Start, Goal, Current;
 	int m_path;
