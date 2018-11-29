@@ -78,6 +78,7 @@ struct Path
 };
 
 int _2D_2_1D_ind(int x, int y, int width);
+void _1D_2_2D_ind(int ind, int height, int width, int &x, int &y);
 
 #endif // ! NODE_H
 

@@ -72,6 +72,9 @@
     <ClInclude Include="Recursive_division.hpp">
       <Filter>Header Files\Algorithms\Maze_generator</Filter>
     </ClInclude>
+    <ClInclude Include="Turn_right.hpp">
+      <Filter>Header Files\Algorithms\Maze_solvers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Node.cpp">
@@ -100,6 +103,9 @@
     </ClCompile>
     <ClCompile Include="Recursive_division.cpp">
       <Filter>Source Files\Algorithms\Maze_generator</Filter>
+    </ClCompile>
+    <ClCompile Include="Turn_right.cpp">
+      <Filter>Source Files\Algorithms\Maze_solvers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

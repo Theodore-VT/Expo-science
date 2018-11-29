@@ -13,8 +13,8 @@ A_Star::A_Star(int priority, int It_per_Step, int Width_nodes, int Height_nodes,
 	m_path_IRL = path;
 	m_ID = rand() % 25555892;
 
-	Start = 0;
-	Goal  = 0;
+	Start = -1;
+	Goal  = -1;
 }
 
 bool A_Star::Update_core(std::vector<Node>& Nodes, Path &path_to_change)
@@ -26,7 +26,7 @@ bool A_Star::Update_core(std::vector<Node>& Nodes, Path &path_to_change)
 		
 		Current = this->Get_Lowest_Fscore(OpenSet);
 		
-		if(Current != Start)
+		if(Current != Start && Current != Goal)
 			m_nodes[Current].node->SetFlag("CURRENT", 1.0f);
 
 		if (Current == Goal)
@@ -85,7 +85,7 @@ int A_Star::Init(std::vector<Node>& Nodes)
 		CameFrom.push_back(-1);
 	}
 
-	if (Start == 0 || Goal == 0)
+	if (Start == -1 || Goal == -1)
 		return INIT_CODE_NOT_READY_;
 
 	OpenSet.push_back(Start);
@@ -98,13 +98,13 @@ int A_Star::Init(std::vector<Node>& Nodes)
 
 void A_Star::Notify_node_core(int Node_ind)
 {
-	if (Start == 0)
+	if (Start == -1)
 	{
 		Start = Node_ind;
 		m_nodes[Start].node->SetFlag("START", 1.0f);
 		m_nodes[Start].node->SetIsWall(0.0f);
 	}
-	else if (Goal == 0)
+	else if (Goal == -1)
 	{
 		Goal = Node_ind;
 		m_nodes[Goal].node->SetFlag("GOAL", 1.0f);

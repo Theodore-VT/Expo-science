@@ -168,6 +168,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="Turn_right.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Algorithm.cpp" />
@@ -179,6 +180,7 @@
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Recursive_division.cpp" />
+    <ClCompile Include="Turn_right.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Expo_science.rc" />
